@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const { Pool } = require("pg");
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = process.env.API_PORT || 8888;
@@ -11,27 +12,43 @@ const pool = new Pool({
 	port: process.env.POSTGRES_PORT || "5432",
 	database: process.env.POSTGRES_DB || "mydatabase",
 });
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
 	res.sendFile("index.html", { root: __dirname });
 });
 
-app.get("/tasks", (req, res) => {
-	pool.connect()
-		.then(() => {
-			pool.query("SELECT * FROM tasks", (err, result) => {
-				if (err) {
-					console.error("Error executing query", err);
-				} else {
-					res.status(200).send(result.rows);
-					console.log("Query result:", result.rows);
-				}
-			});
-		})
-		.catch((err) => {
-			console.error("Error connecting to PostgreSQL database", err);
-		});
+app.get("/tasks", async (req, res) => {
+	try {
+		const result = await pool.query("SELECT * FROM tasks");
+		res.status(200).send(result.rows);
+		console.log("Query result:", result.rows);
+	} catch {
+		console.error("Error executing query", err);
+		res.status(500).send();
+	}
 });
+
+app.post("/tasks", async (req, res) => {
+	var task = req.body;
+	if (task) {
+		try {
+			const result = await pool.query(
+				"INSERT INTO tasks(title,description,status) VALUES($1,$2,$3) RETURNING *",
+				[task.title, task.description, task.status.toLowerCase()]
+			);
+			console.log("Task created:", result.rows[0]);
+			res.status(201).send(result.rows[0]);
+		} catch (err) {
+			console.error("Error querying the postgres pool: ", err);
+		}
+	} else {
+		res.status(400).send();
+		console.error("Invalid request: empty body");
+	}
+});
+
 app.listen(PORT, () => {
 	console.log(`Now listening on port ${PORT}`);
 });
