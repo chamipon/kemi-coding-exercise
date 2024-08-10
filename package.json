@@ -1,0 +1,17 @@
+{
+	"name": "kemi-coding-exercise",
+	"version": "1.0.0",
+	"description": "KEMI Coding Exercise",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js"
+	},
+	"author": "Zachary Kucera",
+	"license": "ISC",
+	"dependencies": {
+		"express": "^4.19.2",
+		"pg": "^8.12.0",
+		"pg-promise": "^11.9.1"
+	}
+}
