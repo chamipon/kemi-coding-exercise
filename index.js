@@ -24,7 +24,7 @@ app.get("/tasks", async (req, res) => {
 		const result = await pool.query("SELECT * FROM tasks");
 		res.status(200).send(result.rows);
 		console.log("Query result:", result.rows);
-	} catch {
+	} catch (err) {
 		console.error("Error executing query", err);
 		res.status(500).send();
 	}
@@ -36,7 +36,7 @@ app.get("/tasks/:id", async (req, res) => {
 			const result = await pool.query(`SELECT * FROM tasks WHERE id = ${id}`);
 			res.status(200).send(result.rows);
 			console.log("Query result:", result.rows);
-		} catch {
+		} catch (err) {
 			console.error("Error executing query", err);
 			res.status(500).send();
 		}
@@ -45,7 +45,22 @@ app.get("/tasks/:id", async (req, res) => {
 		console.error("Invalid request: Empty Parameters");
 	}
 });
-
+app.delete("/tasks/:id", async (req, res) => {
+	var id = req.params.id;
+	if (id) {
+		try {
+			const result = await pool.query(`DELETE FROM tasks WHERE id = ${id}`);
+			res.status(204).send(result.rows);
+			console.log("Task deleted:", id);
+		} catch (err) {
+			console.error("Error executing query", err);
+			res.status(500).send(err);
+		}
+	} else {
+		res.status(400).send();
+		console.error("Invalid request: Empty Parameters");
+	}
+});
 app.post("/tasks", async (req, res) => {
 	var task = req.body;
 	if (task) {
