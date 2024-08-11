@@ -15,67 +15,6 @@ const pool = new Pool({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-	res.sendFile("index.html", { root: __dirname });
-});
-
-app.get("/tasks", async (req, res) => {
-	try {
-		const result = await pool.query("SELECT * FROM tasks");
-		res.status(200).send(result.rows);
-		console.log("Query result:", result.rows);
-	} catch (err) {
-		console.error("Error executing query", err);
-		res.status(500).send("Error executing query");
-	}
-});
-
-app.get("/tasks/:id", async (req, res) => {
-	var id = req.params.id;
-	if (id) {
-		try {
-			const result = await pool.query(`SELECT * FROM tasks WHERE id = ${id}`);
-			if (result.rows.length == 0) {
-				res.status(404).send("No task found with id " + id);
-				console.log("No task found with id " + id);
-			} else {
-				res.status(200).send(result.rows[0]);
-				console.log("Query result:", result.rows[0]);
-			}
-		} catch (err) {
-			console.error("Error executing query", err);
-			res.status(500).send("Error executing query");
-		}
-	} else {
-		res.status(400).send("Invalid request");
-		console.error("Invalid request");
-	}
-});
-
-app.delete("/tasks/:id", async (req, res) => {
-	var id = req.params.id;
-	if (id) {
-		try {
-			const result = await pool.query(
-				`DELETE FROM tasks WHERE id = ${id} RETURNING *`
-			);
-			if (result.rows.length == 0) {
-				res.status(404).send("No task found with id " + id);
-				console.log("No task found with id " + id);
-			} else {
-				res.status(204).send();
-				console.log("Task deleted:", id);
-			}
-		} catch (err) {
-			console.error("Error executing query", err);
-			res.status(500).send(err);
-		}
-	} else {
-		res.status(400).send();
-		console.error("Invalid request: Empty Parameters");
-	}
-});
-
 app.post("/tasks", async (req, res) => {
 	var task = req.body;
 	if (task && task.title && task.status) {
@@ -88,7 +27,7 @@ app.post("/tasks", async (req, res) => {
 			res.status(201).send(result.rows[0]);
 		} catch (err) {
 			console.error("Error querying the postgres pool: ", err);
-			res.status(400).send(err);
+			res.status(500).send(err);
 		}
 	} else {
 		res.status(400).send("Invalid request body");
@@ -96,34 +35,57 @@ app.post("/tasks", async (req, res) => {
 	}
 });
 
+app.get("/tasks", async (req, res) => {
+	try {
+		const result = await pool.query("SELECT * FROM tasks");
+		res.status(200).send(result.rows);
+		console.log("Query result:", result.rows);
+	} catch (err) {
+		console.error("Error executing query", err);
+		res.status(500).send(err);
+	}
+});
+
+app.get("/tasks/:id", async (req, res) => {
+	try {
+		const result = await pool.query(`SELECT * FROM tasks WHERE id = ${id}`);
+		if (result.rows.length == 0) {
+			res.status(404).send("No task found with id " + id);
+			console.log("No task found with id " + id);
+		} else {
+			res.status(200).send(result.rows[0]);
+			console.log("Query result:", result.rows[0]);
+		}
+	} catch (err) {
+		console.error("Error executing query", err);
+		res.status(500).send(err);
+	}
+});
+
 app.put("/tasks/:id", async (req, res) => {
 	var id = req.params.id;
 	var task = req.body;
-	if (id) {
-		var queryString = taskUpdateQueryString(id, task);
-		// Turn req.body into an array of values
-		var colValues = Object.keys(req.body).map(function (key) {
-			return key != "status" ? req.body[key] : req.body[key].toLowerCase();
-		});
-		//Add todays date to the end of the col values for the updated_at value.
-		colValues.push(new Date());
 
-		try {
-			const result = await pool.query(queryString, colValues);
-			if (result.rows.length == 0) {
-				res.status(404).send("No task found with id " + id);
-				console.log("No task found with id " + id);
-			} else {
-				res.status(200).send(result.rows);
-				console.log("Task updated:", result.rows[0]);
-			}
-		} catch (err) {
-			console.error("Error executing query", err);
-			res.status(500).send(err);
+	var queryString = taskUpdateQueryString(id, task);
+	// Turn req.body into an array of values
+	var colValues = Object.keys(req.body).map(function (key) {
+		return key != "status" ? req.body[key] : req.body[key].toLowerCase();
+	});
+	//Add todays date to the end of the col values for the updated_at value.
+	colValues.push(new Date());
+
+	try {
+		const result = await pool.query(queryString, colValues);
+		if (result.rows.length == 0) {
+			res.status(404).send("No task found with id " + id);
+			console.log("No task found with id " + id);
+		} else {
+			res.status(200).send(result.rows);
+			console.log("Task updated:", result.rows[0]);
 		}
-	} else {
-		res.status(400).send("Invalid request");
-		console.error("Invalid request, empty body or id", task, id);
+	} catch (err) {
+		console.error("Error executing query", err);
+		res.status(500).send(err);
 	}
 
 	function taskUpdateQueryString(id, cols) {
@@ -153,6 +115,26 @@ app.put("/tasks/:id", async (req, res) => {
 		return query.join(" ");
 	}
 });
+
+app.delete("/tasks/:id", async (req, res) => {
+	var id = req.params.id;
+	try {
+		const result = await pool.query(
+			`DELETE FROM tasks WHERE id = ${id} RETURNING *`
+		);
+		if (result.rows.length == 0) {
+			res.status(404).send("No task found with id " + id);
+			console.log("No task found with id " + id);
+		} else {
+			res.status(204).send();
+			console.log("Task deleted:", id);
+		}
+	} catch (err) {
+		console.error("Error executing query", err);
+		res.status(500).send(err);
+	}
+});
+
 app.listen(PORT, () => {
 	console.log(`Now listening on port ${PORT}`);
 });
