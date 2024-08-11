@@ -221,4 +221,4 @@ Sending a Delete request to the /tasks/:id endpoint will delete the task with th
 ### Running Tests
 The tests are implemented with [Mocha](https://mochajs.org/) and [Chai.js](https://www.chaijs.com/). The tests are found in the `/test/task.js` file. 
 
-To run the tests, run `npm test` in the root of the project.
+To run the tests, run `npm test` in the root of the project while the server is running.
