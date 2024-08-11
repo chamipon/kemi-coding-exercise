@@ -17,10 +17,10 @@
       CREATE TABLE tasks (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
-        description VARCHAR(255),
+        description TEXT,
         status status,
         created_date DATE NOT NULL DEFAULT CURRENT_DATE,
-        updated_at DATE NOT NULL DEFAULT CURRENT_DATE
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
       ```
    - Verify the creation of the table - `\d+ tasks`
@@ -39,4 +39,181 @@
    API_PORT=8000 #The port the API will be accessible from
    ```
 5. Run `npm start` to start the server. You should see a message in the console similar to `Now listening on port 8000`.
-      
+
+## Documentation
+### Database Schema
+The database schema for this project is very simple, with only a single table.
+
+| Name | Type |
+| --- | --- |
+| `id (Primary key)` | SERIAL |
+| `Title` | VARCHAR(255) |
+| `Description` | TEXT |
+| `Status` | ENUM('pending','in progress','completed') |
+| `Created_At` | DATE |
+| `Updated_At` | TIMESTAMP |
+### API Endpoints
+#### POST /tasks
+Sending a POST request to the /tasks endpoint will create a new task. 
+
+**Request:** Should contain a `title`, `description` and `status`. The `id`, `created_date` and `updated_at` values will be automatically set.
+
+**Reponse:** The response will contain the newly created task object.
+
+201 - Successfully created task
+
+400 - Invalid request
+
+500 - Error executing query
+
+<details>
+<summary>Sample Request Body</summary>
+
+```
+{
+    "title":"Task Title",
+    "description": "Task Description",
+    "status": "Pending"
+}
+```
+</details>
+<details>
+<summary>Sample Response</summary>
+
+```
+   {
+    "id": 1,
+    "title": "Task Title",
+    "description": "Task Description",
+    "status": "pending",
+    "created_date": "2024-08-11T04:00:00.000Z",
+    "updated_at": "2024-08-11T18:55:41.832Z"
+   }  
+```
+</details>
+
+#### GET /tasks
+Sending a GET request to the /tasks endpoint will return a list of all tasks.
+
+**Request:** This requires no request body.
+
+**Reponse:** The response will contain all of the tasks in the database.
+
+200 - Successful query
+
+500 - Error executing query
+
+<details>
+<summary>Sample Response</summary>
+
+```
+   [
+    {
+        "id": 6,
+        "title": "Title",
+        "description": "Task Description",
+        "status": "pending",
+        "created_date": "2024-08-11T04:00:00.000Z",
+        "updated_at": "2024-08-11T19:09:04.734Z"
+    },
+    {
+        "id": 7,
+        "title": "Title",
+        "description": null,
+        "status": "pending",
+        "created_date": "2024-08-11T04:00:00.000Z",
+        "updated_at": "2024-08-11T19:09:15.421Z"
+    },
+    {
+        "id": 1,
+        "title": "test",
+        "description": "Task Description!",
+        "status": "in progress",
+        "created_date": "2024-08-11T04:00:00.000Z",
+        "updated_at": "2024-08-11T19:11:06.519Z"
+    }
+   ]   
+```
+</details>
+
+#### GET /tasks/:id
+Sending a GET request to the /tasks/:id endpoint will return the task with the supplied id.
+
+**Request:** This requires no request body.
+
+**Reponse:** The response will contain the task with the matching id, if there is one.
+
+200 - Successful query
+
+404 - No task found with supplied ID
+
+500 - Error executing query
+
+<details>
+<summary>Sample Response</summary>
+   
+```
+    {
+        "id": 6,
+        "title": "Title",
+        "description": "Task Description",
+        "status": "pending",
+        "created_date": "2024-08-11T04:00:00.000Z",
+        "updated_at": "2024-08-11T19:09:04.734Z"
+    }  
+```
+</details>
+
+#### PUT /tasks/:id
+Sending a PUT request to the /tasks/:id endpoint will update the task with the respective id.
+
+**Request:** The request body should contain whatever fields need to be updated, with their new values. The `updated_at` field is updated with a current timestamp.
+
+**Reponse:** The response will contain the updated task.
+
+200 - Successful query
+
+404 - No task found with supplied ID
+
+500 - Error executing query
+
+<details>
+<summary>Sample Request Body</summary>
+
+```
+{
+    "title":"Updated Title",
+}
+```
+</details>
+
+<details>
+<summary>Sample Response</summary>
+   
+   ```
+    {
+        "id": 6,
+        "title": "Updated Title",
+        "description": "Task Description",
+        "status": "pending",
+        "created_date": "2024-08-11T04:00:00.000Z",
+        "updated_at": "2024-08-11T19:09:04.734Z"
+    }  
+   ```
+</details>
+
+#### DELETE /tasks/:id
+Sending a Delete request to the /tasks/:id endpoint will delete the task with the respective id.
+
+**Request:** This requires no request body.
+
+**Reponse:** The response will contain the updated task.
+
+204 - Successfully deleted task
+
+400 - Invalid request
+
+404 - No task found with supplied ID
+
+500 - Error executing query
+
