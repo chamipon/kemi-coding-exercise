@@ -29,6 +29,7 @@ app.get("/tasks", async (req, res) => {
 		res.status(500).send();
 	}
 });
+
 app.get("/tasks/:id", async (req, res) => {
 	var id = req.params.id;
 	if (id) {
@@ -45,6 +46,7 @@ app.get("/tasks/:id", async (req, res) => {
 		console.error("Invalid request: Empty Parameters");
 	}
 });
+
 app.delete("/tasks/:id", async (req, res) => {
 	var id = req.params.id;
 	if (id) {
@@ -61,6 +63,7 @@ app.delete("/tasks/:id", async (req, res) => {
 		console.error("Invalid request: Empty Parameters");
 	}
 });
+
 app.post("/tasks", async (req, res) => {
 	var task = req.body;
 	if (task) {
@@ -80,6 +83,58 @@ app.post("/tasks", async (req, res) => {
 	}
 });
 
+app.put("/tasks/:id", async (req, res) => {
+	var id = req.params.id;
+	var task = req.body;
+	if (id && task) {
+		var queryString = taskUpdateQueryString(id, task);
+		// Turn req.body into an array of values
+		var colValues = Object.keys(req.body).map(function (key) {
+			return key != "status" ? req.body[key] : req.body[key].toLowerCase();
+		});
+		//Add todays date to the end of the col values for the updated_at value.
+		colValues.push(new Date());
+
+		try {
+			const result = await pool.query(queryString, colValues);
+			res.status(200).send(result.rows);
+			console.log("Task updated:", result.rows[0]);
+		} catch (err) {
+			console.error("Error executing query", err);
+			res.status(500).send(err);
+		}
+	} else {
+		res.status(400).send();
+		console.error("Invalid request, empty body or id", task, id);
+	}
+
+	function taskUpdateQueryString(id, cols) {
+		// Setup static beginning of query
+		var query = ["UPDATE tasks"];
+		query.push("SET");
+
+		// Create another array storing each set command
+		// and assigning a number value for parameterized query
+		var set = [];
+		Object.keys(cols).forEach(function (key, i) {
+			set.push(key + " = ($" + (i + 1) + ")");
+		});
+
+		//Always add the updated_at field to the list of updated fields
+		set.push("updated_at = ($" + (set.length + 1) + ")");
+
+		query.push(set.join(", "));
+
+		// Add the WHERE statement to look up by id
+		query.push("WHERE id = " + id);
+
+		//Return the updated task
+		query.push("RETURNING *");
+
+		// Return a complete query string
+		return query.join(" ");
+	}
+});
 app.listen(PORT, () => {
 	console.log(`Now listening on port ${PORT}`);
 });
