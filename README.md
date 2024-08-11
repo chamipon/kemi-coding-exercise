@@ -1,6 +1,10 @@
 # Kent & Essex Mutual Insurance Coding Exercise
 ## Project Setup
 This project is implemented using PostgreSQL, Node.js and Express. Tests are written using Mocha and Chai.js
+### Docker Setup
+1. Clone this git repository `git clone https://github.com/chamipon/kemi-coding-exercise.git`
+2. Navigate to the root of the project, and run `docker compose up --build`
+3. When this command is done running, the api will be available on port 8888
 ### Manual Setup
 #### PostgreSQL Database Setup
 1. Download and install [PostgreSQL](https://www.postgresql.org/download/)
