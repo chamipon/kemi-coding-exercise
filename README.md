@@ -1,5 +1,6 @@
 # Kent & Essex Mutual Insurance Coding Exercise
 ## Project Setup
+This project is implemented using PostgreSQL, Node.js and Express. Tests are written using Mocha and Chai.js
 ### Manual Setup
 #### PostgreSQL Database Setup
 1. Download and install [PostgreSQL](https://www.postgresql.org/download/)
@@ -217,3 +218,7 @@ Sending a Delete request to the /tasks/:id endpoint will delete the task with th
 
 500 - Error executing query
 
+### Running Tests
+The tests are implemented with [Mocha](https://mochajs.org/) and [Chai.js](https://www.chaijs.com/). The tests are found in the `/test/task.js` file. 
+
+To run the tests, run `npm test` in the root of the project while the server is running.
