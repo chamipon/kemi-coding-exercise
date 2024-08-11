@@ -24,4 +24,19 @@
       );
       ```
    - Verify the creation of the table - `\d+ tasks`
+#### Node.js Project Setup
+1. Download & install [Node.js](https://nodejs.org/en/download/package-manager)
+2. Clone this git repository `git clone https://github.com/chamipon/kemi-coding-exercise.git`
+3. Navigate into the `kemi-coding-exercise` folder and run `npm i` to download the dependencies
+4. Create a file called '.env' in the `kemi-coding-exercide` folder. In this file, copy in the environment variables listed below, and change them to whatever you used when setting up the database.
+   ```
+   POSTGRES_DB=kemi #The name of the PostgreSQL databse
+   POSTGRES_PORT=5432 #The port the database is running on
+   POSTGRES_HOST=localhost #The host the database is running on
+   POSTGRES_USER=postgres #The user we are connecting to the database with
+   POSTGRES_PWD=admin #The password for the user we are connecting with
+
+   API_PORT=8000 #The port the API will be accessible from
+   ```
+5. Run `npm start` to start the server. You should see a message in the console similar to `Now listening on port 8000`.
       
