@@ -35,8 +35,13 @@ app.get("/tasks/:id", async (req, res) => {
 	if (id) {
 		try {
 			const result = await pool.query(`SELECT * FROM tasks WHERE id = ${id}`);
-			res.status(200).send(result.rows);
-			console.log("Query result:", result.rows);
+			if (result.rows.length == 0) {
+				res.status(404).send("No task found with id " + id);
+				console.log("No task found with id " + id);
+			} else {
+				res.status(200).send(result.rows[0]);
+				console.log("Query result:", result.rows[0]);
+			}
 		} catch (err) {
 			console.error("Error executing query", err);
 			res.status(500).send("Error executing query");
@@ -51,9 +56,16 @@ app.delete("/tasks/:id", async (req, res) => {
 	var id = req.params.id;
 	if (id) {
 		try {
-			const result = await pool.query(`DELETE FROM tasks WHERE id = ${id}`);
-			res.status(204).send(result.rows);
-			console.log("Task deleted:", id);
+			const result = await pool.query(
+				`DELETE FROM tasks WHERE id = ${id} RETURNING *`
+			);
+			if (result.rows.length == 0) {
+				res.status(404).send("No task found with id " + id);
+				console.log("No task found with id " + id);
+			} else {
+				res.status(204).send();
+				console.log("Task deleted:", id);
+			}
 		} catch (err) {
 			console.error("Error executing query", err);
 			res.status(500).send(err);
@@ -98,8 +110,13 @@ app.put("/tasks/:id", async (req, res) => {
 
 		try {
 			const result = await pool.query(queryString, colValues);
-			res.status(200).send(result.rows);
-			console.log("Task updated:", result.rows[0]);
+			if (result.rows.length == 0) {
+				res.status(404).send("No task found with id " + id);
+				console.log("No task found with id " + id);
+			} else {
+				res.status(200).send(result.rows);
+				console.log("Task updated:", result.rows[0]);
+			}
 		} catch (err) {
 			console.error("Error executing query", err);
 			res.status(500).send(err);
