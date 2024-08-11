@@ -26,7 +26,7 @@ app.get("/tasks", async (req, res) => {
 		console.log("Query result:", result.rows);
 	} catch (err) {
 		console.error("Error executing query", err);
-		res.status(500).send();
+		res.status(500).send("Error executing query");
 	}
 });
 
@@ -39,11 +39,11 @@ app.get("/tasks/:id", async (req, res) => {
 			console.log("Query result:", result.rows);
 		} catch (err) {
 			console.error("Error executing query", err);
-			res.status(500).send();
+			res.status(500).send("Error executing query");
 		}
 	} else {
-		res.status(400).send();
-		console.error("Invalid request: Empty Parameters");
+		res.status(400).send("Invalid request");
+		console.error("Invalid request");
 	}
 });
 
@@ -66,7 +66,7 @@ app.delete("/tasks/:id", async (req, res) => {
 
 app.post("/tasks", async (req, res) => {
 	var task = req.body;
-	if (task) {
+	if (task && task.title && task.status) {
 		try {
 			const result = await pool.query(
 				"INSERT INTO tasks(title,description,status) VALUES($1,$2,$3) RETURNING *",
@@ -76,17 +76,18 @@ app.post("/tasks", async (req, res) => {
 			res.status(201).send(result.rows[0]);
 		} catch (err) {
 			console.error("Error querying the postgres pool: ", err);
+			res.status(400).send(err);
 		}
 	} else {
-		res.status(400).send();
-		console.error("Invalid request: empty body");
+		res.status(400).send("Invalid request body");
+		console.error("Invalid request", req);
 	}
 });
 
 app.put("/tasks/:id", async (req, res) => {
 	var id = req.params.id;
 	var task = req.body;
-	if (id && task) {
+	if (id) {
 		var queryString = taskUpdateQueryString(id, task);
 		// Turn req.body into an array of values
 		var colValues = Object.keys(req.body).map(function (key) {
@@ -104,7 +105,7 @@ app.put("/tasks/:id", async (req, res) => {
 			res.status(500).send(err);
 		}
 	} else {
-		res.status(400).send();
+		res.status(400).send("Invalid request");
 		console.error("Invalid request, empty body or id", task, id);
 	}
 
